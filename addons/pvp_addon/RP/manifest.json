@@ -1,0 +1,13 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "PvP Addon (Ressourcen)",
+    "description": "Kleines Schild und niedriges Feuer",
+    "uuid": "f219cf79-9314-40a8-a400-189107b501e1",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 21, 0]
+  },
+  "modules": [
+    { "type": "resources", "uuid": "f851f190-a64b-4239-a13a-8fba5cc93b3f", "version": [1, 0, 0] }
+  ]
+}
