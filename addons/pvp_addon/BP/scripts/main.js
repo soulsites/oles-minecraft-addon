@@ -1,9 +1,8 @@
 import { RuestungsAnzeige } from "./ruestungsAnzeige.js";
-import { Schnellwechsel } from "./schnellwechsel.js";
 
 class PvpAddon {
     constructor() {
-        this.module = [new RuestungsAnzeige(), new Schnellwechsel()];
+        this.module = [new RuestungsAnzeige()];
     }
 
     start() {
