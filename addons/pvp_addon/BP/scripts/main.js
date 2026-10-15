@@ -1,52 +1,15 @@
-import { world, system, EquipmentSlot } from "@minecraft/server";
+import { RuestungsAnzeige } from "./ruestungsAnzeige.js";
+import { NebenhandTausch } from "./nebenhandTausch.js";
+import { NebenhandBloecke } from "./nebenhandBloecke.js";
 
-/**
- * Zeigt die Haltbarkeit der getragenen Rüstung in der Actionbar (über der Hotbar) an.
- */
-class RuestungsAnzeige {
-    static INTERVALL_TICKS = 10;
-    static SLOTS = [
-        { slot: EquipmentSlot.Head, name: "Helm" },
-        { slot: EquipmentSlot.Chest, name: "Brust" },
-        { slot: EquipmentSlot.Legs, name: "Hose" },
-        { slot: EquipmentSlot.Feet, name: "Schuhe" },
-    ];
-
-    register() {
-        system.runInterval(() => this.aktualisieren(), RuestungsAnzeige.INTERVALL_TICKS);
+class PvpAddon {
+    constructor() {
+        this.module = [new RuestungsAnzeige(), new NebenhandTausch(), new NebenhandBloecke()];
     }
 
-    aktualisieren() {
-        for (const spieler of world.getAllPlayers()) {
-            const text = this.erstelleText(spieler);
-            if (text) spieler.onScreenDisplay.setActionBar(text);
-        }
-    }
-
-    erstelleText(spieler) {
-        const ausruestung = spieler.getComponent("minecraft:equippable");
-        if (!ausruestung) return "";
-
-        return RuestungsAnzeige.SLOTS
-            .map(({ slot, name }) => this.slotText(ausruestung.getEquipment(slot), name))
-            .filter((teil) => teil)
-            .join(" §8| ");
-    }
-
-    slotText(item, name) {
-        const haltbarkeit = item?.getComponent("minecraft:durability");
-        if (!haltbarkeit) return "";
-
-        const rest = haltbarkeit.maxDurability - haltbarkeit.damage;
-        const prozent = Math.round((rest / haltbarkeit.maxDurability) * 100);
-        return `§f${name} ${this.farbe(prozent)}${rest}`;
-    }
-
-    farbe(prozent) {
-        if (prozent > 50) return "§a";
-        if (prozent > 20) return "§e";
-        return "§c";
+    start() {
+        this.module.forEach((modul) => modul.register());
     }
 }
 
-new RuestungsAnzeige().register();
+new PvpAddon().start();
