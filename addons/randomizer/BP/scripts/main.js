@@ -15,20 +15,10 @@ class SeedZufall {
         t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
         return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     }
-
-    // Sattolo-Algorithmus: kein Element bleibt an seinem Platz (kein Block droppt sich selbst)
-    mische(liste) {
-        const kopie = [...liste];
-        for (let i = kopie.length - 1; i > 0; i--) {
-            const j = Math.floor(this.naechste() * i);
-            [kopie[i], kopie[j]] = [kopie[j], kopie[i]];
-        }
-        return kopie;
-    }
 }
 
 /**
- * Baut die Vertauschung: jeder Block bekommt genau ein anderes Item/Block zugeordnet (1:1).
+ * Baut die Vertauschung: jeder Block bekommt ein festes, zufälliges anderes Item/Block zugeordnet.
  */
 class DropTabelle {
     static SEED_KEY = "ole:randomizer_seed";
@@ -57,15 +47,23 @@ class DropTabelle {
         return this.zuordnung.get(blockId) ?? this.drops[this.hash(blockId) % this.drops.length];
     }
 
-    // Alle Items (inkl. Blöcke) werden 1:1 vertauscht – Blöcke können so auch normale Items droppen
+    // Jeder Block bekommt ein zufälliges Item/Block (nie sich selbst) – gleiche Drops dürfen mehrfach vorkommen
     aufbauen() {
         this.drops = ItemTypes.getAll()
             .map((typ) => typ.id)
             .filter((id) => this.istErlaubt(id))
             .sort();
 
-        const gemischt = new SeedZufall(this.seed).mische(this.drops);
-        this.zuordnung = new Map(this.drops.map((id, i) => [id, gemischt[i]]));
+        const zufall = new SeedZufall(this.seed);
+        this.zuordnung = new Map(this.drops.map((id) => [id, this.zufallsDrop(zufall, id)]));
+    }
+
+    zufallsDrop(zufall, ausser) {
+        let drop;
+        do {
+            drop = this.drops[Math.floor(zufall.naechste() * this.drops.length)];
+        } while (drop === ausser && this.drops.length > 1);
+        return drop;
     }
 
     istErlaubt(id) {
