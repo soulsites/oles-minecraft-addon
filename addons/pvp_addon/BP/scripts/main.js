@@ -1,10 +1,9 @@
 import { RuestungsAnzeige } from "./ruestungsAnzeige.js";
-import { NebenhandTausch } from "./nebenhandTausch.js";
-import { NebenhandBloecke } from "./nebenhandBloecke.js";
+import { Schnellwechsel } from "./schnellwechsel.js";
 
 class PvpAddon {
     constructor() {
-        this.module = [new RuestungsAnzeige(), new NebenhandTausch(), new NebenhandBloecke()];
+        this.module = [new RuestungsAnzeige(), new Schnellwechsel()];
     }
 
     start() {
