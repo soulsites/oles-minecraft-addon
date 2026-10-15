@@ -1,26 +1,40 @@
-"""Packt BP + RP zu einer .mcaddon-Datei (Doppelklick = Import in Minecraft)."""
+"""Packt jedes Add-on unter addons/ zu einer .mcaddon-Datei (Doppelklick = Import in Minecraft)."""
 import zipfile
 from pathlib import Path
 
 
 class AddonBuilder:
-    def __init__(self, root: Path, name: str):
-        self.root = root
-        self.ziel = root / "dist" / f"{name}.mcaddon"
-        self.packs = {"BP": f"{name}_BP", "RP": f"{name}_RP"}
+    PACK_ORDNER = {"BP": "BP", "RP": "RP"}
+
+    def __init__(self, quelle: Path, zielOrdner: Path):
+        self.quelle = quelle
+        self.name = quelle.name
+        self.ziel = zielOrdner / f"{self.name}.mcaddon"
 
     def build(self) -> Path:
         self.ziel.parent.mkdir(exist_ok=True)
         with zipfile.ZipFile(self.ziel, "w", zipfile.ZIP_DEFLATED) as zf:
-            for ordner, packname in self.packs.items():
-                self.addPack(zf, self.root / ordner, packname)
+            for ordner, suffix in self.PACK_ORDNER.items():
+                pack = self.quelle / ordner
+                if pack.is_dir():
+                    self.addPack(zf, pack, f"{self.name}_{suffix}")
         return self.ziel
 
-    def addPack(self, zf: zipfile.ZipFile, quelle: Path, packname: str):
-        for datei in sorted(quelle.rglob("*")):
+    def addPack(self, zf: zipfile.ZipFile, pack: Path, packname: str):
+        for datei in sorted(pack.rglob("*")):
             if datei.is_file():
-                zf.write(datei, f"{packname}/{datei.relative_to(quelle).as_posix()}")
+                zf.write(datei, f"{packname}/{datei.relative_to(pack).as_posix()}")
+
+
+class Projekt:
+    def __init__(self, root: Path):
+        self.addons = root / "addons"
+        self.dist = root / "dist"
+
+    def buildAlle(self):
+        for quelle in sorted(p for p in self.addons.iterdir() if p.is_dir()):
+            print("Erstellt:", AddonBuilder(quelle, self.dist).build())
 
 
 if __name__ == "__main__":
-    print("Erstellt:", AddonBuilder(Path(__file__).parent, "oles_addon").build())
+    Projekt(Path(__file__).parent).buildAlle()
