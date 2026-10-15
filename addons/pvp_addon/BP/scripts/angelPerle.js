@@ -1,4 +1,5 @@
 import { world, system } from "@minecraft/server";
+import { Diagnose } from "./diagnose.js";
 
 /**
  * Angel-Perle: Angel in der Hand + Schleichen drücken = Ender-Perle aus dem Inventar werfen.
@@ -18,7 +19,7 @@ export class AngelPerle {
     }
 
     register() {
-        system.runInterval(() => this.tick(), 1);
+        system.runInterval(() => Diagnose.ausfuehren("Angel-Perle", () => this.tick()), 1);
     }
 
     tick() {

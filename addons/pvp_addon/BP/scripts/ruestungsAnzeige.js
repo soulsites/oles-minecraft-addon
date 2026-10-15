@@ -1,4 +1,5 @@
 import { world, system, EquipmentSlot } from "@minecraft/server";
+import { Diagnose } from "./diagnose.js";
 
 /**
  * Zeigt die Haltbarkeit der getragenen Rüstung in der Actionbar (über der Hotbar) an.
@@ -13,7 +14,7 @@ export class RuestungsAnzeige {
     ];
 
     register() {
-        system.runInterval(() => this.aktualisieren(), RuestungsAnzeige.INTERVALL_TICKS);
+        system.runInterval(() => Diagnose.ausfuehren("Rüstungsanzeige", () => this.aktualisieren()), RuestungsAnzeige.INTERVALL_TICKS);
     }
 
     aktualisieren() {
