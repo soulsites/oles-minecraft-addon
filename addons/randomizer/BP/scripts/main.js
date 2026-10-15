@@ -1,4 +1,4 @@
-import { world, system, ItemStack, ItemTypes, BlockPermutation } from "@minecraft/server";
+import { world, system, ItemStack, ItemTypes } from "@minecraft/server";
 
 /**
  * Zufallszahlen mit Seed – gleiche Seed = gleiche Vertauschung.
@@ -28,19 +28,19 @@ class SeedZufall {
 }
 
 /**
- * Baut die Vertauschung: jeder Block bekommt genau einen anderen Block zugeordnet (1:1).
+ * Baut die Vertauschung: jeder Block bekommt genau ein anderes Item/Block zugeordnet (1:1).
  */
 class DropTabelle {
     static SEED_KEY = "ole:randomizer_seed";
     static VERBOTEN = [
         "air", "bedrock", "barrier", "command_block", "structure_", "jigsaw", "light_block",
         "border_block", "allow", "deny", "portal", "moving_block", "piston_arm", "unknown",
-        "info_update", "reserved", "placeholder", "element_", "spawn_egg", "water", "lava", "fire"
+        "info_update", "reserved", "placeholder", "element_", "spawn_egg", "water", "lava", "fire", "debug", "npc"
     ];
 
     constructor() {
         this.zuordnung = null;
-        this.bloecke = [];
+        this.drops = [];
     }
 
     get seed() {
@@ -54,30 +54,22 @@ class DropTabelle {
 
     getDrop(blockId) {
         if (!this.zuordnung) this.aufbauen();
-        return this.zuordnung.get(blockId) ?? this.bloecke[this.hash(blockId) % this.bloecke.length];
+        return this.zuordnung.get(blockId) ?? this.drops[this.hash(blockId) % this.drops.length];
     }
 
+    // Alle Items (inkl. Blöcke) werden 1:1 vertauscht – Blöcke können so auch normale Items droppen
     aufbauen() {
-        this.bloecke = ItemTypes.getAll()
+        this.drops = ItemTypes.getAll()
             .map((typ) => typ.id)
-            .filter((id) => this.istErlaubt(id) && this.istBlock(id))
+            .filter((id) => this.istErlaubt(id))
             .sort();
 
-        const gemischt = new SeedZufall(this.seed).mische(this.bloecke);
-        this.zuordnung = new Map(this.bloecke.map((id, i) => [id, gemischt[i]]));
+        const gemischt = new SeedZufall(this.seed).mische(this.drops);
+        this.zuordnung = new Map(this.drops.map((id, i) => [id, gemischt[i]]));
     }
 
     istErlaubt(id) {
         return !DropTabelle.VERBOTEN.some((wort) => id.includes(wort));
-    }
-
-    istBlock(id) {
-        try {
-            BlockPermutation.resolve(id);
-            return true;
-        } catch {
-            return false;
-        }
     }
 
     hash(text) {
@@ -165,7 +157,7 @@ class BlockRandomizer {
 
     onSpawn(event) {
         if (!event.initialSpawn) return;
-        event.player.sendMessage("§d[Randomizer] §fAlle Blöcke droppen etwas anderes – viel Glück!");
+        event.player.sendMessage("§d[Randomizer] §fAlle Blöcke droppen andere Blöcke oder Items – viel Glück!");
     }
 }
 
